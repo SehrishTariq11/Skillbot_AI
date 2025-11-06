@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><title>Result</title></head>
+<body>
+    <h2>Congratulations, {{ name }}!</h2>
+    <p>Your recommended field is: <b>{{ predicted }}</b></p>
+
+    <h3>Your Answers:</h3>
+    <ul>
+    {% for q,a in answers.items() %}
+        <li>{{ q }} → {{ a }}</li>
+    {% endfor %}
+    </ul>
+
+    <a href="/">Take again</a>
+</body>
+</html>
