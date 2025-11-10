@@ -1,8 +1,30 @@
 import streamlit as st
 import pandas as pd
-
+import auth
 # -------------------- PAGE SETUP --------------------
 st.set_page_config(page_title="SkillBot Interest Profile", layout="centered")
+# -------------------- LOGIN / SIGNUP --------------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    st.title("🔐 SkillBot Login / Signup")
+
+    option = st.radio("Choose an option:", ["Login", "Signup"])
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if option == "Login":
+        if st.button("Login"):
+            if auth.login(username, password):
+                st.rerun()
+
+    elif option == "Signup":
+        if st.button("Sign Up"):
+            auth.signup(username, password)
+
+    st.stop()  # Stop app until login
+
 
 # -------------------- LOAD DATA --------------------
 questions = pd.read_csv("questions.csv")
@@ -138,3 +160,4 @@ elif st.session_state.page == "careers":
 
     if st.button("🏠 Back to Start"):
         restart()
+
