@@ -1,3 +1,5 @@
-streamlit
+opencv-python-headless
+paddleocr
+paddlepaddle
+numpy
 pandas
-plotly
