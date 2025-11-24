@@ -183,84 +183,94 @@ elif choice == "TCI Test":
 # ========================================
 # DASHBOARD / OCR + LLM INTEGRATION
 # ========================================
+# ========================================
+# DASHBOARD / OCR + LLM INTEGRATION
+# ========================================
 elif choice == "Dashboard":
     st.title("📊 Combined Career & Personality Dashboard")
 
-    riasec_scores = st.session_state.get("riasec_scores", None)
-    tci_scores = st.session_state.get("tci_scores", None)
-
-    if riasec_scores is None or tci_scores is None:
-        st.warning("⚠️ Please complete both RIASEC and TCI tests first.")
+    # --- Enforce Sign Up ---
+    if not st.session_state.user_authenticated:
+        st.warning("⚠️ You must sign up or log in first before uploading marksheets or accessing the dashboard.")
+        if st.button("Go to Sign Up"):
+            st.session_state.sidebar_choice = "Sign Up"
+            st.rerun()
     else:
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader("RIASEC Interests")
-            st.bar_chart(riasec_scores)
-        with col2:
-            st.subheader("TCI Traits")
-            st.bar_chart(tci_scores)
+        riasec_scores = st.session_state.get("riasec_scores", None)
+        tci_scores = st.session_state.get("tci_scores", None)
 
-        st.divider()
-        st.subheader("Insight Summary")
-        st.write(f"Top Interest: **{riasec_scores.idxmax()}**, Top Trait: **{tci_scores.idxmax()}**")
-        st.info("Use both profiles to guide your career choices!")
+        if riasec_scores is None or tci_scores is None:
+            st.warning("⚠️ Please complete both RIASEC and TCI tests first.")
+        else:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader("RIASEC Interests")
+                st.bar_chart(riasec_scores)
+            with col2:
+                st.subheader("TCI Traits")
+                st.bar_chart(tci_scores)
 
-        # -----------------------------
-        # OCR Upload Section
-        # -----------------------------
-        st.subheader("📑 Upload Your Marksheet(s)")
-        uploaded_files = st.file_uploader(
-            "Upload marksheet images (JPG, PNG, JPEG) or PDF", type=["jpg", "jpeg", "png", "pdf"], accept_multiple_files=True
-        )
-
-        merged_df = pd.DataFrame()
-        if uploaded_files:
-            temp_paths = []
-            for idx, file in enumerate(uploaded_files):
-                temp_path = f"temp_{idx}_{file.name}"
-                with open(temp_path, "wb") as f:
-                    f.write(file.getbuffer())
-                temp_paths.append(temp_path)
-
-                # Extract marks from each file
-                df_marks = extract_marks_from_marksheet(temp_path)
-                df_marks["student_id"] = idx + 1  # assign unique ID per file
-                merged_df = pd.concat([merged_df, df_marks], ignore_index=True)
-
-            st.success("✅ OCR extraction completed for all uploaded files.")
-            st.dataframe(merged_df)
-
-            # Save merged CSV for LLM
-            merged_csv_path = "marksheet_merged.csv"
-            merged_df.to_csv(merged_csv_path, index=False)
-            st.success(f"💾 Merged marksheet saved as `{merged_csv_path}`")
+            st.divider()
+            st.subheader("Insight Summary")
+            st.write(f"Top Interest: **{riasec_scores.idxmax()}**, Top Trait: **{tci_scores.idxmax()}**")
+            st.info("Use both profiles to guide your career choices!")
 
             # -----------------------------
-            # LLM Recommendation
+            # OCR Upload Section
             # -----------------------------
-            st.subheader("✨ Career Recommendation")
-            # Save temporary personality CSV
-            personality_df = pd.DataFrame([{
-                "riasec_R": riasec_scores.get("R",0),
-                "riasec_I": riasec_scores.get("I",0),
-                "riasec_A": riasec_scores.get("A",0),
-                "riasec_S": riasec_scores.get("S",0),
-                "riasec_E": riasec_scores.get("E",0),
-                "riasec_C": riasec_scores.get("C",0),
-                "tci_NoveltySeeking": tci_scores.get("NoveltySeeking",0),
-                "tci_RewardDependence": tci_scores.get("RewardDependence",0)
-            }])
-            personality_csv = "temp_personality.csv"
-            personality_df.to_csv(personality_csv, index=False)
+            st.subheader("📑 Upload Your Marksheet(s)")
+            uploaded_files = st.file_uploader(
+                "Upload marksheet images (JPG, PNG, JPEG) or PDF", type=["jpg", "jpeg", "png", "pdf"], accept_multiple_files=True
+            )
 
-            # Run LLM model
-            from llm import recommend_field
-            best_field, best_subfields = recommend_field(personality_csv, merged_csv_path)
+            merged_df = pd.DataFrame()
+            if uploaded_files:
+                temp_paths = []
+                for idx, file in enumerate(uploaded_files):
+                    temp_path = f"temp_{idx}_{file.name}"
+                    with open(temp_path, "wb") as f:
+                        f.write(file.getbuffer())
+                    temp_paths.append(temp_path)
 
-            st.success(f"Recommended Field: **{best_field}**")
-            st.write("Recommended Subfields:")
-            for sf in best_subfields:
-                st.write(f"- {sf}")
+                    # Extract marks from each file
+                    df_marks = extract_marks_from_marksheet(temp_path)
+                    df_marks["student_id"] = idx + 1  # assign unique ID per file
+                    merged_df = pd.concat([merged_df, df_marks], ignore_index=True)
+
+                st.success("✅ OCR extraction completed for all uploaded files.")
+                st.dataframe(merged_df)
+
+                # Save merged CSV for LLM
+                merged_csv_path = "marksheet_merged.csv"
+                merged_df.to_csv(merged_csv_path, index=False)
+                st.success(f"💾 Merged marksheet saved as `{merged_csv_path}`")
+
+                # -----------------------------
+                # LLM Recommendation
+                # -----------------------------
+                st.subheader("✨ Career Recommendation")
+                # Save temporary personality CSV
+                personality_df = pd.DataFrame([{
+                    "riasec_R": riasec_scores.get("R",0),
+                    "riasec_I": riasec_scores.get("I",0),
+                    "riasec_A": riasec_scores.get("A",0),
+                    "riasec_S": riasec_scores.get("S",0),
+                    "riasec_E": riasec_scores.get("E",0),
+                    "riasec_C": riasec_scores.get("C",0),
+                    "tci_NoveltySeeking": tci_scores.get("NoveltySeeking",0),
+                    "tci_RewardDependence": tci_scores.get("RewardDependence",0)
+                }])
+                personality_csv = "temp_personality.csv"
+                personality_df.to_csv(personality_csv, index=False)
+
+                # Run LLM model
+                best_field, best_subfields = recommend_field(personality_csv, merged_csv_path)
+
+                st.success(f"Recommended Field: **{best_field}**")
+                st.write("Recommended Subfields:")
+                for sf in best_subfields:
+                    st.write(f"- {sf}")
+
 
 # =====================================================
 # SIGN UP
@@ -320,4 +330,5 @@ elif choice == "Profile Creation (Hidden)":
             st.success("Profile created successfully!")
 
             st.json(profile)
+
 
