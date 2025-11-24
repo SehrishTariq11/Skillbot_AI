@@ -212,8 +212,5 @@ def extract_marks_from_marksheet(image_path, output_csv=None):
     return df
 
 
-# ------------------------------------------------------------
-# 5) Run on your marksheet
-# ------------------------------------------------------------
-extract_marks_from_marksheet("/content/IMG_20210617_120733.jpg", output_csv='marksheet_marks.csv')
+
 
