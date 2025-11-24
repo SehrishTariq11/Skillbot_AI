@@ -4,6 +4,8 @@ import plotly.express as px
 import json
 import os
 from datetime import datetime
+from ocr import extract_marks_from_marksheet
+from llm import recommend_field
 
 # -------------------- PAGE SETUP --------------------
 st.set_page_config(page_title="SkillBot Career & Personality Profiler", layout="centered")
@@ -183,6 +185,7 @@ elif choice == "TCI Test":
 # =====================================================
 elif choice == "Dashboard":
     st.title("📊 Combined Career & Personality Dashboard")
+
     riasec_scores = st.session_state.get("riasec_scores", None)
     tci_scores = st.session_state.get("tci_scores", None)
 
@@ -202,14 +205,55 @@ elif choice == "Dashboard":
         top_interest = riasec_scores.idxmax()
         top_trait = tci_scores.idxmax()
         st.write(f"Top Interest: **{top_interest}**, Top Trait: **{top_trait}**")
-
         st.info("Use both profiles to guide your career choices!")
 
         st.divider()
-        if st.button("✨ Want more personalized results?"):
-            st.session_state.sidebar_choice = "Sign Up"
-            st.rerun()
+        st.subheader("📑 Upload Marksheet Image(s)")
 
+        uploaded_files = st.file_uploader(
+            "Upload marksheet images (jpg/png/jpeg)", 
+            type=["jpg","png","jpeg"], 
+            accept_multiple_files=True
+        )
+
+        merged_marks = None
+
+        if uploaded_files:
+            all_marksheets = []
+            for idx, uploaded_file in enumerate(uploaded_files):
+                temp_path = f"temp_{uploaded_file.name}"
+                with open(temp_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+
+                st.success(f"✅ Image {uploaded_file.name} uploaded")
+                
+                # Run OCR extraction
+                df_marks = extract_marks_from_marksheet(temp_path)
+                df_marks["id"] = idx + 1  # Unique student ID
+                all_marksheets.append(df_marks)
+            
+            # Merge all uploaded marksheets
+            merged_marks = pd.concat(all_marksheets, ignore_index=True)
+            merged_csv_path = "marksheet_merged.csv"
+            merged_marks.to_csv(merged_csv_path, index=False)
+            st.success(f"💾 Merged marksheet CSV saved: {merged_csv_path}")
+            st.dataframe(merged_marks)
+
+        # Generate personality CSV from session state for LLM
+        personality_csv_path = "response.csv"
+        personality_df = pd.DataFrame([{
+            **{f"riasec_{k}": v for k, v in riasec_scores.items()},
+            **{f"tci_{k}": v for k, v in tci_scores.items()}
+        }])
+        personality_df.to_csv(personality_csv_path, index=False)
+
+        # Career Recommendation Button
+        if merged_marks is not None and st.button("🎯 Recommend Career Field"):
+            best_field, best_subfields = recommend_field(personality_csv_path, merged_csv_path)
+            st.success(f"🏆 Recommended Field: {best_field}")
+            st.write("💡 Recommended Subfields:")
+            for sub in best_subfields:
+                st.write("-", sub)
 
 # =====================================================
 # SIGN UP
@@ -267,4 +311,5 @@ elif choice == "Profile Creation (Hidden)":
             with open(f"profiles/{name}_profile.json", "w") as f:
                 json.dump(profile, f)
             st.success("Profile created successfully!")
+
             st.json(profile)
