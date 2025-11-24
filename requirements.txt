@@ -1,20 +1,6 @@
-# Streamlit and web dependencies
 streamlit==1.26.0
-plotly==5.21.0
-
-# Data handling
 pandas==2.1.1
-numpy==1.26.0
-
-# OCR and computer vision
+plotly==5.16.1
 opencv-python-headless==4.8.1.78
-paddleocr==2.7.0.3
-paddlex==2.2.5
-
-# PDF handling (optional, if you allow PDF uploads)
-PyPDF2==3.1.0
-pdf2image==1.17.1
-Pillow==10.1.0
-
-# Date and JSON handling
-python-dateutil==2.9.2
+paddleocr==2.7.0.1
+paddlepaddle==2.5.0
