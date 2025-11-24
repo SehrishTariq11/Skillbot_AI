@@ -1,6 +1,8 @@
-opencv-python-headless
-paddleocr
-paddlepaddle
-numpy
-pandas
-plotly
+streamlit==1.26.0
+pandas==2.1.1
+plotly==5.20.0
+opencv-python-headless==4.8.1.78
+paddleocr==2.7.0.1
+paddlex==2.2.3
+numpy==1.27.0
+
