@@ -1,21 +1,5 @@
 #Merge both marksheet csv files which are gernerated by OCR
 
-import pandas as pd
-m1 = pd.read_csv('/content/marksheet_marks (5).csv')
-m2 = pd.read_csv('/content/marksheet_marks (7).csv')
-
-# Assign a unique student ID to each marksheet before merging
-m1['id'] = 1 # Assuming this marksheet is for student_id 1
-m2['id'] = 2 # Assuming this marksheet is for student_id 2
-
-# Concatenate the dataframes. Now both have an 'id' column.
-merged = pd.concat([m1, m2], axis=0, ignore_index=True)
-merged.to_csv('marksheet_merged.csv', index=False)
-
-
-
-#LLM Model
-
 
 import pandas as pd
 
@@ -206,3 +190,4 @@ def recommend_field(personality_csv, marksheet_csv):
 # give there your response file path 
 
     recommend_field("/content/response.csv", "marksheet_merged.csv")
+
