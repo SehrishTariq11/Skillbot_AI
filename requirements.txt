@@ -3,3 +3,4 @@ paddleocr
 paddlepaddle
 numpy
 pandas
+plotly
